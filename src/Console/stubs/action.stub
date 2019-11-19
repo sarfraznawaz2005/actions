@@ -1,0 +1,20 @@
+<?php
+
+namespace DummyNamespace;
+
+use Illuminate\Http\Request;
+use DummyBaseActionNamespace as Handler;
+
+class DummyClass extends Handler
+{
+    /**
+     * Handle the incoming request.
+     *
+     * @param  \Illuminate\Http\Request
+     * @return \Illuminate\Http\Response
+     */
+    public function __invoke(Request $request)
+    {
+        //
+    }
+}
