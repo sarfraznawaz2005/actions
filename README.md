@@ -107,13 +107,11 @@ class PostAction extends Action
 
  - In `rules()` method, you can store any validation rules for this action. You would normally need this for `store` or `update` operations. This method is optional and is run BEFORE `__invoke()` method.  
  
- - In `__invoke()` method, you write actual logic of the action. Actions are invokable classes that use `__invoke` magic function turning them into a `Callable` which allows them to be called as a `function`.
+ - In `__invoke()` method, you write actual logic of the action. Actions are invokable classes that use `__invoke` magic function turning them into a `Callable` which allows them to be called as a `function`. The `__invoke()` method can be used for dependecy injection but constructor is recommended approach.
  
  - In `htmlResponse()` method, you write code that will be sent as HTML to browser.
  
  - In `jsonResponse()` method, you write code that will be returned as API response. Of course in real world app, you would use api resource/transformer in this method.
- 
- - The `__invoke()` method can be used for dependecy injection but constructor is recommended approach.
 
 > **NOTE:** To send html or api response *automatically*, you must call `return $this->sendResponse()` from `__invoke()` method as shown above.
 
