@@ -3,18 +3,51 @@
 namespace DummyNamespace;
 
 use Illuminate\Http\Request;
-use DummyBaseActionNamespace as Handler;
+use Illuminate\Http\Response;
+use DummyBaseActionNamespace;
 
-class DummyClass extends Handler
+class DummyClass extends Action
 {
     /**
-     * Handle the incoming request.
+     * Define any validation rules.
      *
-     * @param  \Illuminate\Http\Request
-     * @return \Illuminate\Http\Response
+     * @return mixed
+     */
+    protected function rules(): array
+    {
+        return [];
+    }
+
+    /**
+     * Perform the action.
+     *
+     * @param Request $request
+     * @return mixed
      */
     public function __invoke(Request $request)
     {
         //
+
+        return $this->sendResponse();
+    }
+
+    /**
+     * Response to be returned in case of web request.
+     *
+     * @return mixed
+     */
+    protected function htmlResponse()
+    {
+        return 'hi';
+    }
+
+    /**
+     * Response to be returned in case of API request.
+     *
+     * @return mixed
+     */
+    protected function jsonResponse()
+    {
+        return response()->json(null, Response::HTTP_OK);
     }
 }

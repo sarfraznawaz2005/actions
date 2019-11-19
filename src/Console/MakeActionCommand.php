@@ -2,19 +2,16 @@
 
 namespace Sarfraznawaz2005\Actions\Console;
 
-use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem;
+use Illuminate\Console\GeneratorCommand;
 use Sarfraznawaz2005\Actions\Action;
 use Sarfraznawaz2005\Actions\Exceptions\CommandException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 
-class MakeActionCommand extends Command
+class MakeActionCommand extends GeneratorCommand
 {
     protected $name = 'make:action';
     protected $description = 'Creates a new action';
-
-    protected $fs;
 
     protected function getArguments(): array
     {
@@ -28,23 +25,11 @@ class MakeActionCommand extends Command
         return [
             ['resource', 'r', InputOption::VALUE_NONE, 'Generate actions for all resource actions.'],
             ['api', 'a', InputOption::VALUE_NONE, 'Exclude the create and edit actions.'],
-            [
-                'actions',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Generate actions for all specified actions separated by comma.'
-            ],
+            ['actions', null, InputOption::VALUE_REQUIRED, 'Generate specified actions separated by comma.'],
             ['except', null, InputOption::VALUE_REQUIRED, 'Exclude specified actions separated by coma.'],
             ['namespace', null, InputOption::VALUE_REQUIRED, 'The namespace for generated action(s).'],
             ['force', 'f', InputOption::VALUE_NONE, 'Override existing action(s).'],
         ];
-    }
-
-    public function __construct(Filesystem $fs)
-    {
-        $this->fs = $fs;
-
-        parent::__construct();
     }
 
     /**
@@ -85,7 +70,7 @@ class MakeActionCommand extends Command
 
                 $this->makeDirectory($path);
 
-                $this->fs->put($path, $this->buildClass($fullClassName));
+                $this->files->put($path, $this->buildClass($fullClassName));
 
                 $this->info($type . ' created successfully.');
             }
@@ -96,6 +81,21 @@ class MakeActionCommand extends Command
         }
 
         return true;
+    }
+
+    /**
+     * Replace the class name for the given stub.
+     *
+     * @param  string  $stub
+     * @param  string  $name
+     * @return string
+     */
+    protected function replaceClass($stub, $name)
+    {
+        $class = str_replace($this->getNamespace($name).'\\', '', $name);
+        $class = trim($class, '\\/');
+
+        return str_replace('DummyClass', $class, $stub);
     }
 
     /**
@@ -157,7 +157,7 @@ class MakeActionCommand extends Command
             return [$name];
         }
 
-        return array_map(function (string $action) use ($name) {
+        return array_map(static function (string $action) use ($name) {
             return studly_case($action) . $name;
         }, $bag->get());
     }
@@ -239,8 +239,8 @@ class MakeActionCommand extends Command
     protected function processApiOption(ActionsBag $bag)
     {
         if ($this->option('api')) {
-            foreach (['edit', 'create'] as $action) {
-                $bag->deleteIfExists($action);
+            foreach (['index', 'show', 'store', 'update', 'destroy'] as $action) {
+                $bag->addIfNotExists($action);
             }
         }
     }
