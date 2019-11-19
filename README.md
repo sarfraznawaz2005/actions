@@ -107,7 +107,7 @@ class PostAction extends Action
 
  - In `rules()` method, you can store any validation rules for this action. You would normally need this for `store` or `update` operations. This method is optional and is run BEFORE `__invoke()` method.  
  
- - In `__invoke()` method, you write actual logic of the action. Actions are invokable classes that use `__invoke` magic function turning them into a `Callable` which allows them to be called as a `function`. So you need to return response in `__invoke` method.
+ - In `__invoke()` method, you write actual logic of the action. Actions are invokable classes that use `__invoke` magic function turning them into a `Callable` which allows them to be called as a `function`.
  
  - In `htmlResponse()` method, you write code that will be sent as HTML to browser.
  
