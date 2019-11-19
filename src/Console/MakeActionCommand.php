@@ -12,8 +12,8 @@ use Illuminate\Console\Command;
 
 class MakeActionCommand extends Command
 {
-    protected $signature = 'servermonitor:check {checker? : Optional check to run.}';
-    protected $description = 'Starts new checks process for server and application.';
+    protected $signature = 'make:action';
+    protected $description = 'Creates a new action';
 
     /**
      * Execute the console command.
