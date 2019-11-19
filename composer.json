@@ -1,0 +1,36 @@
+{
+  "name": "sarfraznawaz2005/actions",
+  "keywords": [
+    "laravel",
+    "action",
+    "single",
+    "controller",
+    "srp"
+  ],
+  "description": "Laravel package as alternative to single action controllers with support for web and api in single class.",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Sarfraz Ahmed",
+      "email": "sarfraznawaz2005@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.0",
+    "illuminate/support": "~5|~6"
+  },
+  "autoload": {
+    "psr-4": {
+      "Sarfraznawaz2005\\Actions\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Sarfraznawaz2005\\Actions\\ServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "stable"
+}
