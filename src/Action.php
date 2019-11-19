@@ -7,7 +7,6 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
 abstract class Action extends BaseController
@@ -15,7 +14,7 @@ abstract class Action extends BaseController
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     protected $rules = [];
-    protected $validData;
+    protected $validData = [];
 
     /*
      * @var $isOkay bool
@@ -28,7 +27,6 @@ abstract class Action extends BaseController
      * @param string $method
      * @param array $parameters
      * @return Response
-     * @throws ValidationException
      */
     public function callAction($method, $parameters)
     {
@@ -81,14 +79,15 @@ abstract class Action extends BaseController
 
     /**
      * Checks validation rules against request input and stores result in validated variable.
-     *
-     * @throws ValidationException
      */
     protected function checkValidation()
     {
         if (method_exists($this, 'rules')) {
             $this->rules = $this->rules();
-            $this->validData = $this->validate(request(), $this->rules);
+
+            if (!empty($this->rules)) {
+                $this->validData = $this->validate(request(), $this->rules);
+            }
         }
     }
 }

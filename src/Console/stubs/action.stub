@@ -2,7 +2,6 @@
 
 namespace DummyNamespace;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use DummyBaseActionNamespace;
 
@@ -21,10 +20,9 @@ class DummyClass extends Action
     /**
      * Perform the action.
      *
-     * @param Request $request
      * @return mixed
      */
-    public function __invoke(Request $request)
+    public function __invoke()
     {
         //
 
