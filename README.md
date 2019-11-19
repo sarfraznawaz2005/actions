@@ -4,8 +4,6 @@
 
 # Laravel Actions
 
-## Introduction ##
-
 Laravel package as an alternative to [single action controllers](https://laravel.com/docs/master/controllers#single-action-controllers) with support for web and api in single class. You can use *single class* to send appropriate web or api response automatically. It also provides easy way to validate request data.
 
 Under the hood, they are normal Laravel controllers but with single public `__invoke` method. This means you can do anything that you do with controllers normally like calling `$this->middleware('foo')` or anything else.
