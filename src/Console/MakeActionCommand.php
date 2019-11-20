@@ -55,6 +55,8 @@ class MakeActionCommand extends BaseCommand
 
             $this->line("\n");
 
+            $created = false;
+
             foreach ($classNames as $className) {
                 $fullClassName = $finalNamespace . '\\' . $className;
 
@@ -75,9 +77,13 @@ class MakeActionCommand extends BaseCommand
                 $this->files->put($path, $this->buildClass($fullClassName));
 
                 $this->info($type . ' created successfully.');
+
+                $created = true;
             }
 
-            $this->printRoutes($classNames);
+            if ($created) {
+                $this->printRoutes($classNames);
+            }
 
         } catch (CommandException $exception) {
             $this->error($exception->getMessage());
@@ -137,7 +143,7 @@ class MakeActionCommand extends BaseCommand
             $route = rtrim($route, '/');
             $path = ltrim($namespace . '\\' . $action, '\\');
 
-            $routes .= 'Route::' . $verb . "('" . $route . "', '\\" . $path . "');" . "\n";
+            $routes .= 'Route::' . $verb . "('" . $route . "', '\\" . $path . "')->name('" . $actionNameRoutePlural . ($method ? '.' . $method : '') . "');" . "\n";
         }
 
         if ($routes) {
