@@ -1,0 +1,16 @@
+<?php
+
+namespace DummyNamespace;
+
+class DummyClass
+{
+    /**
+     * Perform the action.
+     *
+     * @return mixed
+     */
+    public function execute()
+    {
+        //
+    }
+}

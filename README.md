@@ -4,7 +4,7 @@
 
 # Laravel Actions
 
-Laravel package as an alternative to [single action controllers](https://laravel.com/docs/master/controllers#single-action-controllers) with support for web and api in single class. You can use *single class* to send appropriate web or api response automatically. It also provides easy way to validate request data.
+Laravel package as an alternative to [single action controllers](https://laravel.com/docs/master/controllers#single-action-controllers) with support for web and api in single class. You can use *single* class to send appropriate web or api response *automatically*. It also provides easy way to validate request data.
 
 Under the hood, they are normal Laravel controllers but with single public `__invoke` method. This means you can do anything that you do with controllers normally like calling `$this->middleware('foo')` or anything else.
 
@@ -16,7 +16,6 @@ Under the hood, they are normal Laravel controllers but with single public `__in
  - Helps avoid code duplication eg different classes for web and api
  - Actions can be callable from multiple places in your app
  - Small dedicated classes really pay off in complex apps
- - Actions can be used as non-controller fashion like service classes
  - Expressive routes registration like `Route::get('/', HomeAction::class)`
  - Allows decorator pattern 
 
@@ -33,19 +32,12 @@ Install via composer
 composer require sarfraznawaz2005/actions
 ```
 
-For Laravel < 5.5:
-
-Add Service Provider to `config/app.php` in `providers` section
-
-```php
-Sarfraznawaz2005\Action\ServiceProvider::class,
-```
 
 That's it.
 
 ---
 
-## Example Action ##
+## Example Action Class ##
 
 ````php
 class PostAction extends Action
@@ -60,7 +52,7 @@ class PostAction extends Action
     /**
      * Define any validation rules.
      *
-     * @return mixed
+     * @return array
      */
     protected function rules(): array
     {
@@ -107,13 +99,15 @@ class PostAction extends Action
 
  - In `rules()` method, you can store any validation rules for this action. You would normally need this for `store` or `update` operations. This method is optional and is run BEFORE `__invoke()` method.  
  
- - In `__invoke()` method, you write actual logic of the action. Actions are invokable classes that use `__invoke` magic function turning them into a `Callable` which allows them to be called as a `function`. The `__invoke()` method can be used for dependecy injection but constructor is recommended approach.
+ - In `__invoke()` method, you write actual logic of the action. Actions are invokable classes that use `__invoke` magic function turning them into a `Callable` which allows them to be called as function. The `__invoke()` method can be used for dependency injection but constructor is recommended approach.
  
  - In `htmlResponse()` method, you write code that will be sent as HTML to browser.
  
  - In `jsonResponse()` method, you write code that will be returned as API response. Of course in real world app, you would use api resource/transformer in this method.
 
-> **NOTE:** To send html or api response *automatically*, you must call `return $this->sendResponse()` from `__invoke()` method as shown above.
+**Send Web or API response automatically**
+
+To send html or api response *automatically*, you must call `return $this->sendResponse()` from `__invoke()` method as shown above.
 
 Under the hood, `sendResponse()` method checks if `Accept: application/json` header is present in request and if so it sends output from your `jsonResponse()` method otherwise from `htmlResponse()` method. 
 
@@ -148,7 +142,7 @@ class PostAction extends Action
     /**
      * Define any validation rules.
      *
-     * @return mixed
+     * @return array
      */
     protected function rules(): array
     {
@@ -388,6 +382,37 @@ Route::group(['namespace' => 'Controllers'], function () {
     Route::get('/users/{user}', 'UserController@show');
 });
 ```
+
+## Bonus: Creating Plain Classes
+
+The package also provides `make:class` console command to create plain classes:
+
+```bash
+php artisan make:class FooBar
+```
+
+`FooBar` class will be created under `app/Actions` folder:
+
+````php
+namespace App\Actions;
+
+class FooBar
+{
+    /**
+     * Perform the action.
+     *
+     * @return mixed
+     */
+    public function execute()
+    {
+        //
+    }
+}
+````
+
+
+Note that these are plain old PHP classes you can use for any purpose. *Ideally*, they should not be dependent on Laravel framework or any other framework and should have single public method as api such as `execute` and any more private/protected methods needed for that class to work. This will allow you to use them across different projects and frameworks. You can also think of them as service classes.
+
 
 ## Credits
 

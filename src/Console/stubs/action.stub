@@ -10,7 +10,7 @@ class DummyClass extends Action
     /**
      * Define any validation rules.
      *
-     * @return mixed
+     * @return array
      */
     protected function rules(): array
     {
