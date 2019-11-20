@@ -244,7 +244,7 @@ class MakeActionCommand extends BaseCommand
     protected function getValidatedAndNormalizedActionName(string $action): string
     {
         if (preg_match('/^\w+$/', $action)) {
-            return snake_case($action);
+            return Str::snake($action);
         }
 
         throw new CommandException('[' . $action . '] is not a valid action name.');
