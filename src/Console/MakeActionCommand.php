@@ -2,6 +2,7 @@
 
 namespace Sarfraznawaz2005\Actions\Console;
 
+use Illuminate\Support\Str;
 use Sarfraznawaz2005\Actions\Action;
 use Sarfraznawaz2005\Actions\Exceptions\CommandException;
 use Symfony\Component\Console\Input\InputArgument;
@@ -52,6 +53,8 @@ class MakeActionCommand extends BaseCommand
 
             $finalNamespace = $this->getFinalNamespace();
 
+            $this->line("\n");
+
             foreach ($classNames as $className) {
                 $fullClassName = $finalNamespace . '\\' . $className;
 
@@ -73,6 +76,9 @@ class MakeActionCommand extends BaseCommand
 
                 $this->info($type . ' created successfully.');
             }
+
+            $this->printRoutes($classNames);
+
         } catch (CommandException $exception) {
             $this->error($exception->getMessage());
 
@@ -80,6 +86,65 @@ class MakeActionCommand extends BaseCommand
         }
 
         return true;
+    }
+
+    /**
+     * Prints routes for generated actions
+     *
+     * @param $classNames
+     * @return string
+     * @throws CommandException
+     */
+    protected function printRoutes($classNames)
+    {
+        $routes = '';
+        $namespace = $this->getFinalNamespace();
+        $actionName = $this->getValidatedNameArgument();
+
+        $actionNameRoutePlural = strtolower(Str::plural($actionName));
+        $actionNameRouteSingular = strtolower(Str::singular($actionName));
+
+        $actionMappings = [
+            'index' => 'get',
+            'show' => 'get',
+            'create' => 'get',
+            'store' => 'post',
+            'edit' => 'get',
+            'update' => 'put',
+            'destroy' => 'delete',
+        ];
+
+        $routeMappings = [
+            'index' => $actionNameRoutePlural,
+            'show' => $actionNameRoutePlural . '/{' . $actionNameRouteSingular . '}',
+            'create' => "$actionNameRoutePlural/create",
+            'store' => $actionNameRoutePlural,
+            'edit' => $actionNameRoutePlural . '/{' . $actionNameRouteSingular . '}/edit',
+            'update' => $actionNameRoutePlural . '/{' . $actionNameRouteSingular . '}',
+            'destroy' => $actionNameRoutePlural . '/{' . $actionNameRouteSingular . '}',
+        ];
+
+        // remove action name
+        $methods = array_map(static function ($value) use ($actionName) {
+            return $value . '|' . strtolower(str_replace($actionName, '', $value));
+        }, $classNames);
+
+        foreach ($methods as $methodDetails) {
+            list($action, $method) = explode('|', $methodDetails);
+
+            $verb = $actionMappings[$method] ?? 'get';
+            $route = $routeMappings[$method] ?? $actionNameRoutePlural . '/' . $method;
+            $route = rtrim($route, '/');
+            $path = ltrim($namespace . '\\' . $action, '\\');
+
+            $routes .= 'Route::' . $verb . "('" . $route . "', '\\" . $path . "');" . "\n";
+        }
+
+        if ($routes) {
+            $this->line("\n");
+            $this->alert('You may use following routes:');
+            $this->info($routes);
+        }
     }
 
     /**

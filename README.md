@@ -129,6 +129,10 @@ Primary usage of action classes is mapping them to routes so they are called aut
 // routes/web.php
 
 Route::get('post', '\App\Http\Actions\PostAction');
+
+// or
+
+Route::get('post', '\\' . PostAction::class');
 ````
 
 > <sup>*Note that the initial `\` here is important to ensure the namespace does not become `\App\Http\Controller\App\Http\Actions\PostAction`*</sup>
@@ -215,6 +219,8 @@ To send html or api response *automatically*, you must call `return $this->sendR
 Under the hood, `sendResponse()` method checks if `Accept: application/json` header is present in request and if so it sends output from your `jsonResponse()` method otherwise from `htmlResponse()` method. 
 
 ## Creating Actions ##
+
+![Screen](https://github.com/sarfraznawaz2005/actions/blob/master/screen.png?raw=true)
 
 - Create an action
 
