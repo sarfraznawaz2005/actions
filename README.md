@@ -8,6 +8,20 @@ Laravel package as an alternative to [single action controllers](https://laravel
 
 Under the hood, they are normal Laravel controllers but with single public `__invoke` method. This means you can do anything that you do with controllers normally like calling `$this->middleware('foo')` or anything else.
 
+
+## Table of Contents
+
+- [Why](#why)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Example Action Class](#example-action-class)
+- [Usage](#usage)
+- [Utility Properties](#utility-properties)
+- [Send Web or API response automatically](#send-web-or-api-response-automatically)
+- [Creating Actions](#creating-actions)
+- [Registering Routes](#registering-routes)
+- [Bonus: Creating Plain Classes](#bonus-creating-plain-classes)
+
 ## Why ##
 
  - Helps follow single responsibility principle (SRP)
@@ -105,12 +119,6 @@ class PostAction extends Action
  
  - In `jsonResponse()` method, you write code that will be returned as API response. Of course in real world app, you would use api resource/transformer in this method.
 
-**Send Web or API response automatically**
-
-To send html or api response *automatically*, you must call `return $this->sendResponse()` from `__invoke()` method as shown above.
-
-Under the hood, `sendResponse()` method checks if `Accept: application/json` header is present in request and if so it sends output from your `jsonResponse()` method otherwise from `htmlResponse()` method. 
-
 ## Usage ##
 
 **As Controller Actions**
@@ -198,6 +206,13 @@ class PostAction extends Action
  - In above code, we use action's built-in `$this->validData` property to get valid request data to save in our `Post` model after validation rules have passed in `rules()` method.
 
  - We then save result of `$post->create()` call into action's built-in `$this->isOkay` property so that we can show success/failure flash messages or api responses in response methods.
+
+
+#### Send Web or API response automatically
+
+To send html or api response *automatically*, you must call `return $this->sendResponse()` from `__invoke()` method as shown above.
+
+Under the hood, `sendResponse()` method checks if `Accept: application/json` header is present in request and if so it sends output from your `jsonResponse()` method otherwise from `htmlResponse()` method. 
 
 ## Creating Actions ##
 
