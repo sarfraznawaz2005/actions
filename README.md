@@ -132,7 +132,7 @@ Route::get('post', '\App\Http\Actions\PostAction');
 
 // or
 
-Route::get('post', '\\' . PostAction::class');
+Route::get('post', '\\' . PostAction::class);
 ````
 
 > <sup>*Note that the initial `\` here is important to ensure the namespace does not become `\App\Http\Controller\App\Http\Actions\PostAction`*</sup>
