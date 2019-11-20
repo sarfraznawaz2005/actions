@@ -83,13 +83,14 @@ class MakeActionCommand extends BaseCommand
                 $created = true;
             }
 
-            if ($createdPath) {
-                $this->line("\n");
-                $createdPath = str_replace(['\\', '/', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR], DIRECTORY_SEPARATOR, $createdPath);
-                $this->line('Path: ' . $createdPath);
-            }
-
             if ($created) {
+
+				if ($createdPath) {
+					$this->line("\n");
+					$createdPath = str_replace(['\\', '/', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR], DIRECTORY_SEPARATOR, $createdPath);
+					$this->line('Path: ' . $createdPath);
+				}            
+            
                 $this->printRoutes($classNames);
             }
 
