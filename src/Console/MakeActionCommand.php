@@ -56,6 +56,7 @@ class MakeActionCommand extends BaseCommand
             $this->line("\n");
 
             $created = false;
+            $createdPath = '';
 
             foreach ($classNames as $className) {
                 $fullClassName = $finalNamespace . '\\' . $className;
@@ -63,6 +64,7 @@ class MakeActionCommand extends BaseCommand
                 $type = $className . ' action';
 
                 $path = $this->getPath($fullClassName);
+                $createdPath = dirname($path);
 
                 if ((!$this->hasOption('force') ||
                         !$this->option('force')) &&
@@ -79,6 +81,12 @@ class MakeActionCommand extends BaseCommand
                 $this->info($type . ' created successfully.');
 
                 $created = true;
+            }
+
+            if ($createdPath) {
+                $this->line("\n");
+                $createdPath = str_replace(['\\', '/', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR], DIRECTORY_SEPARATOR, $createdPath);
+                $this->line('Path: ' . $createdPath);
             }
 
             if ($created) {
