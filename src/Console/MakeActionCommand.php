@@ -158,7 +158,7 @@ class MakeActionCommand extends BaseCommand
         $defaultNamespace = $this->laravel->getNamespace() . 'Http\\Actions';
 
         if (($namespaceOption = $this->getValidatedAndNormalizedNamespaceOption()) !== null) {
-            if (starts_with($namespaceOption, '\\')) {
+            if (Str::startsWith($namespaceOption, '\\')) {
                 return $namespaceOption;
             }
 

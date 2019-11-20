@@ -3,6 +3,7 @@
 namespace Sarfraznawaz2005\Actions\Console;
 
 use Illuminate\Console\GeneratorCommand;
+use Illuminate\Support\Str;
 use Sarfraznawaz2005\Actions\Exceptions\CommandException;
 
 abstract class BaseCommand extends GeneratorCommand
@@ -54,14 +55,14 @@ abstract class BaseCommand extends GeneratorCommand
      */
     protected function generateClassNames(ActionsBag $bag, string $name): array
     {
-        $name = studly_case($name);
+        $name = Str::studly($name);
 
         if ($bag->isEmpty()) {
             return [$name];
         }
 
         return array_map(static function (string $action) use ($name) {
-            return studly_case($action) . $name;
+            return Str::studly($action) . $name;
         }, $bag->get());
     }
 
