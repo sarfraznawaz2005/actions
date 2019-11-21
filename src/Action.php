@@ -101,6 +101,8 @@ abstract class Action extends BaseController
         if (method_exists($this, 'html')) {
             return $this->html();
         }
+
+        return $this->result;
     }
 
     /**
@@ -135,34 +137,64 @@ abstract class Action extends BaseController
      * Creates new DB record for given model
      *
      * @param Model $model
+     * @param Callable $callback
      * @return bool
      */
-    protected function create(Model $model): bool
+    protected function create(Model $model, Callable $callback = null): bool
     {
-        return $this->save($model);
+        if ($this->save($model)) {
+
+            if (!is_null($callback) && is_callable($callback)) {
+                $callback();
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
      * Updates record for given model
      *
      * @param Model $model
+     * @param Callable $callback
      * @return bool
      */
-    protected function update(Model $model): bool
+    protected function update(Model $model, Callable $callback = null): bool
     {
-        return $this->save($model);
+        if ($this->save($model)) {
+
+            if (!is_null($callback) && is_callable($callback)) {
+                $callback();
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
      * Deletes record for given model
      *
      * @param Model $model
+     * @param Callable $callback
      * @return bool
      * @throws \Exception
      */
-    protected function delete(Model $model): bool
+    protected function delete(Model $model, Callable $callback = null): bool
     {
-        return $model->delete();
+        if ($model->delete()) {
+
+            if (!is_null($callback) && is_callable($callback)) {
+                $callback();
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

@@ -236,7 +236,7 @@ class TodoStoreAction extends Action
 
 There are few things to notice above that package provides out of the box:
 
- - Inside `__invoke` method, we used `$this->create` method as shorthand/quick way to create a new todo record. Similarly, `$this->update` and `$this->delete` methods can also be used. They all return `boolean` value. Using these methods is not required though.
+ - Inside `__invoke` method, we used `$this->create` method as shorthand/quick way to create a new todo record. Similarly, `$this->update` and `$this->delete` methods can also be used. They all return `boolean` value. They all also accept optional callback which gets triggered only if their operation returned `true`. Using these methods is not required though.
  
  - If you return something from `__invoke` method, it gets stored into `$this->result` variable automatically. In this case, boolean result of todo creation was saved into it. We then used this variable as convenience in `html` and `json` methods to decide what response to send in case of success/failure.
  
