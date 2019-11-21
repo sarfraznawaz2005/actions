@@ -3,23 +3,57 @@
 namespace Sarfraznawaz2005\Actions;
 
 use BadMethodCallException;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\MessageBag;
 use Symfony\Component\HttpFoundation\Response;
 
 abstract class Action extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    protected $rules = [];
-    protected $validData = [];
+    const MESSAGE_ADD = 'Added Successfully';
+    const MESSAGE_UPDATE = 'Updated Successfully';
+    const MESSAGE_DELETE = 'Deleted Successfully';
 
-    /*
-     * @var $isOkay bool
+    /**
+     * validation rules for action
+     *
+     * @var array
      */
-    protected $isOkay = true;
+    protected $rules = [];
+
+    /**
+     * validation errors
+     *
+     * @var MessageBag
+     */
+    protected $errors = null;
+
+    /**
+     * custom messages for validation errors
+     *
+     * @var array
+     */
+    protected $messages = [];
+
+    /**
+     * Returns true/false based on if request type is API
+     *
+     * @var bool
+     */
+    protected $isApi = false;
+
+    /**
+     * Stores result of __invoke call
+     *
+     * @var mixed
+     */
+    protected $result = false;
 
     /**
      * Execute the action.
@@ -34,37 +68,39 @@ abstract class Action extends BaseController
             throw new BadMethodCallException('Only __invoke method can be called on action.');
         }
 
-        $this->checkValidation();
+        $this->validate();
 
-        return call_user_func_array([$this, $method], $parameters);
+        $this->result = call_user_func_array([$this, $method], $parameters);
+
+        if (method_exists($this, 'html') || method_exists($this, 'json')) {
+            return $this->sendResponse();
+        }
+
+        return $this->result;
     }
-
-    /**
-     * Response to be returned in case of web request.
-     *
-     * @return mixed
-     */
-    abstract protected function htmlResponse();
-
-    /**
-     * Response to be returned in case of API request.
-     *
-     * @return mixed
-     */
-    abstract protected function jsonResponse();
 
     /**
      * Sends response based on client eg html or json.
      *
      * @return mixed
      */
-    protected function sendResponse()
+    private function sendResponse()
     {
-        if ($this->isApi()) {
-            return $this->jsonResponse();
+        if (method_exists($this, 'json')) {
+            $this->isApi = $this->expectsApi();
+
+            if (method_exists($this, 'isApi')) {
+                $this->isApi = $this->isApi();
+            }
+
+            if ($this->isApi) {
+                return $this->json();
+            }
         }
 
-        return $this->htmlResponse();
+        if (method_exists($this, 'html')) {
+            return $this->html();
+        }
     }
 
     /**
@@ -72,22 +108,73 @@ abstract class Action extends BaseController
      *
      * @return bool
      */
-    protected function isApi(): bool
+    private function expectsApi(): bool
     {
         return request()->expectsJson() && !request()->acceptsHtml();
     }
 
     /**
-     * Checks validation rules against request input and stores result in validated variable.
+     * Checks validation rules against request input.
+     *
+     * @return mixed
      */
-    protected function checkValidation()
+    private function validate()
     {
-        if (method_exists($this, 'rules')) {
-            $this->rules = $this->rules();
+        if (!empty($this->rules)) {
+            $validator = Validator::make(request()->all(), $this->rules, $this->messages);
 
-            if (!empty($this->rules)) {
-                $this->validData = $this->validate(request(), $this->rules);
+            if ($validator->fails()) {
+                $this->errors = $validator->errors();
             }
+
+            return $validator->validate();
         }
+    }
+
+    /**
+     * Creates new DB record for given model
+     *
+     * @param Model $model
+     * @return bool
+     */
+    protected function create(Model $model): bool
+    {
+        return $this->save($model);
+    }
+
+    /**
+     * Updates record for given model
+     *
+     * @param Model $model
+     * @return bool
+     */
+    protected function update(Model $model): bool
+    {
+        return $this->save($model);
+    }
+
+    /**
+     * Deletes record for given model
+     *
+     * @param Model $model
+     * @return bool
+     * @throws \Exception
+     */
+    protected function delete(Model $model): bool
+    {
+        return $model->delete();
+    }
+
+    /**
+     * Saves record for given model
+     *
+     * @param Model $model
+     * @return bool
+     */
+    private function save(Model $model): bool
+    {
+        $model->fill(request()->all());
+
+        return $model->save();
     }
 }

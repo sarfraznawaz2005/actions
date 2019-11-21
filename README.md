@@ -4,9 +4,9 @@
 
 # Laravel Actions
 
-Laravel package as an alternative to [single action controllers](https://laravel.com/docs/master/controllers#single-action-controllers) with support for web and api in single class. You can use *single* class to send appropriate web or api response *automatically*. It also provides easy way to validate request data.
+Laravel package as an alternative to [single action controllers](https://laravel.com/docs/master/controllers#single-action-controllers) with support for web/html and api in single class. You can use *single* class called *Action* to send appropriate web or api response *automatically*. It also provides easy way to validate request data.
 
-Under the hood, they are normal Laravel controllers but with single public `__invoke` method. This means you can do anything that you do with controllers normally like calling `$this->middleware('foo')` or anything else.
+Under the hood, action classes are normal Laravel controllers but with single public `__invoke` method. This means you can do anything that you do with controllers normally like calling `$this->middleware('foo')` or anything else.
 
 
 ## Table of Contents
@@ -16,8 +16,9 @@ Under the hood, they are normal Laravel controllers but with single public `__in
 - [Installation](#installation)
 - [Example Action Class](#example-action-class)
 - [Usage](#usage)
-- [Utility Properties](#utility-properties)
-- [Send Web or API response automatically](#send-web-or-api-response-automatically)
+- [Send Web or API Response Automatically](#send-web-or-api-response-automatically)
+- [Validation](#validation)
+- [Utility Methods and Properties](#utility-methods-and-properties)
 - [Creating Actions](#creating-actions)
 - [Registering Routes](#registering-routes)
 - [Bonus: Creating Plain Classes](#bonus-creating-plain-classes)
@@ -25,10 +26,10 @@ Under the hood, they are normal Laravel controllers but with single public `__in
 ## Why ##
 
  - Helps follow single responsibility principle (SRP)
- - It keeps our controllers and models skinny
- - Small dedicated action makes the code easier to test
+ - Helps keep controllers and models skinny
+ - Small dedicated class makes the code easier to test
  - Helps avoid code duplication eg different classes for web and api
- - Actions can be callable from multiple places in your app
+ - Action classes can be callable from multiple places in your app
  - Small dedicated classes really pay off in complex apps
  - Expressive routes registration like `Route::get('/', HomeAction::class)`
  - Allows decorator pattern 
@@ -54,24 +55,12 @@ That's it.
 ## Example Action Class ##
 
 ````php
-class PostAction extends Action
+class PublishPostAction extends Action
 {
-    protected $service;
-
-    public function __construct(FooService $service)
-    {
-        $this->service = $service;
-    }
-
     /**
      * Define any validation rules.
-     *
-     * @return array
      */
-    protected function rules(): array
-    {
-        return [];
-    }
+    protected $rules = [];
 
     /**
      * Perform the action.
@@ -80,44 +69,12 @@ class PostAction extends Action
      */
     public function __invoke()
     {
-        $this->service->bar();
-    
-        // more code
-
-        return $this->sendResponse();
-    }
-
-    /**
-     * Response to be returned in case of web request.
-     *
-     * @return mixed
-     */
-    protected function htmlResponse()
-    {
-        return 'hi';
-    }
-
-    /**
-     * Response to be returned in case of API request.
-     *
-     * @return mixed
-     */
-    protected function jsonResponse()
-    {
-        return response()->json(null, Response::HTTP_OK);
+        // code
     }
 }
 ````
 
-**Explanation**
-
- - In `rules()` method, you can store any validation rules for this action. You would normally need this for `store` or `update` operations. This method is optional and is run BEFORE `__invoke()` method.  
- 
- - In `__invoke()` method, you write actual logic of the action. Actions are invokable classes that use `__invoke` magic function turning them into a `Callable` which allows them to be called as function. The `__invoke()` method can be used for dependency injection but constructor is recommended approach.
- 
- - In `htmlResponse()` method, you write code that will be sent as HTML to browser.
- 
- - In `jsonResponse()` method, you write code that will be returned as API response. Of course in real world app, you would use api resource/transformer in this method.
+In `__invoke()` method, you write actual logic of the action. Actions are invokable classes that use `__invoke` magic function turning them into a `Callable` which allows them to be called as function.
 
 ## Usage ##
 
@@ -128,77 +85,147 @@ Primary usage of action classes is mapping them to routes so they are called aut
 ````php
 // routes/web.php
 
-Route::get('post', '\App\Http\Actions\PostAction');
+Route::get('post', '\App\Http\Actions\PublishPostAction');
 
 // or
 
-Route::get('post', '\\' . PostAction::class);
+Route::get('post', '\\' . PublishPostAction::class);
 ````
 
-> <sup>*Note that the initial `\` here is important to ensure the namespace does not become `\App\Http\Controller\App\Http\Actions\PostAction`*</sup>
+> <sup>*Note that the initial `\` here is important to ensure the namespace does not become `\App\Http\Controller\App\Http\Actions\PublishPostAction`*</sup>
 
-**As Callable Class**
+**As Callable Classes**
 
 ````php
-$postAction = new PostAction();
-$postAction();
+$action = new PublishPostAction();
+$action();
 ````
 
-## Utility Properties ##
+## Send Web or API Response Automatically ##
 
-It is common requirement to send web or api response based on certain condition or to get validated data to be used later. Consider following action which is supposed to save post into database and send appropriate response to web and api:
+If you need to serve both web and api responses from same/single action class, you need to define `html()` and `json()` method in your action class:
 
 ````php
-class PostAction extends Action
+class TodosListAction extends Action
 {
-    /**
-     * Define any validation rules.
-     *
-     * @return array
-     */
-    protected function rules(): array
+    protected $todos;
+
+    public function __invoke(Todo $todos)
     {
-        return [
-            'description' => 'required|min:5',
-        ];
+        $this->todos = $todos->all();
     }
 
-    /**
-     * Perform the action.
-     *
-     * @return mixed
-     */
-    public function __invoke(Post $post)
+    protected function html()
     {
-        $this->isOkay = $post->create($this->validData);
-
-        return $this->sendResponse();
+        return view()->with('todos', $this->todos);
     }
 
-    /**
-     * Response to be returned in case of web request.
-     *
-     * @return mixed
-     */
-    protected function htmlResponse()
+    protected function json()
     {
-        if (!$this->isOkay) {
-            return back()->withInput()->withErrors(['Unable to add post']);
+        return TodosResource::collection($this->todos);
+    }
+}
+````
+
+With these two methods present, the package will *automatically* send appropriate response. Browsers will receive output from `html()` method and other devices will receive output from `json()` method.
+
+Under the hood, we check if `Accept: application/json` header is present in request and if so it sends output from your `json()` method otherwise from `html()` method. 
+
+You can change this api/json detection mechanism by implementing `isApi()` method, it must return `boolean` value:
+
+````php
+class TodosListAction extends Action
+{
+    protected $todos;
+
+    public function __invoke(Todo $todos)
+    {
+        $this->todos = $todos->all();
+    }
+
+    protected function html()
+    {
+        return view('index')->with('todos', $this->todos);
+    }
+
+    protected function json()
+    {
+        return TodosResource::collection($this->todos);
+    }
+        
+    public function isApi()
+    {
+        return request()->expectsJson() && !request()->acceptsHtml();
+    }
+
+}
+````
+
+**Using Action Classes for API Requests Only**
+
+Simply return `true` from `isApi` method and use `json` method.
+
+**Using Action Classes for Web/Browser Requests Only**
+
+This is default behaviour, you can simply return your HTML/blade views from within `__invokde` or if you use `html` method.
+
+## Validation ##
+
+You can perform input validation for your `store` and `update` methods, simply use `protected $rules = []` property in your action class:
+
+````php
+class TodoStoreAction extends Action
+{
+    protected $rules = [
+        'title' => 'required|min:5'
+    ];
+    
+    public function __invoke(Todo $todo)
+    {
+        $todo->fill(request()->all());
+    
+        return $todo->save();
+    }
+}
+````
+
+In this case, validation will be performed before `__invoke` method is called and if it fails, you will be automatically redirected back to form page with `$errors` filled with validation errors.
+
+> **Tip:** Because validatoin is performed before `__invoke` method is called, using `request()->all()` will give you valid data in `__invoke` method which is why it's used in above example.
+
+**Custom Validation Messages**
+
+To implement custom validation error messages for your rules, simply use `protected $messages = []` property.
+
+## Utility Methods and Properties ##
+
+Consider following action which is supposed to save todo/task into database and send appropriate response to web and api:
+
+````php
+class TodoStoreAction extends Action
+{
+    protected $rules = [
+        'title' => 'required|min:2'
+    ];
+
+    public function __invoke(Todo $todo)
+    {
+        return $this->create($todo);
+    }
+
+    protected function html()
+    {
+        if (!$this->result) {
+            return back()->withInput()->withErrors($this->errors);
         }
 
-        flash('Post added successfully', 'success');
-
+        session()->flash('success', self::MESSAGE_ADD);
         return back();
     }
 
-    /**
-     * Response to be returned in case of API request.
-     *
-     * @return mixed
-     */
-    protected function jsonResponse()
+    protected function json()
     {
-        if (!$this->isOkay) {
+        if (!$this->result) {
             return response()->json(['result' => false], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
@@ -207,16 +234,16 @@ class PostAction extends Action
 }
 ````
 
- - In above code, we use action's built-in `$this->validData` property to get valid request data to save in our `Post` model after validation rules have passed in `rules()` method.
+There are few things to notice above that package provides out of the box:
 
- - We then save result of `$post->create()` call into action's built-in `$this->isOkay` property so that we can show success/failure flash messages or api responses in response methods.
+ - Inside `__invoke` method, we used `$this->create` method as shorthand/quick way to create a new todo record. Similarly, `$this->update` and `$this->delete` methods can also be used. They all return `boolean` value. Using these methods is not required though.
+ 
+ - If you return something from `__invoke` method, it gets stored into `$this->result` variable automatically. In this case, boolean result of todo creation was saved into it. We then used this variable as convenience in `html` and `json` methods to decide what response to send in case of success/failure.
+ 
+ - Any validation errors are saved in `$this->errors` variable which can be used as needed.
 
+> **Tip:** You can choose to not use any utility methods/properties/validations offered by this package which is completely fine. Remember, action classes are normal Laravel controllers you can use however you like.
 
-#### Send Web or API response automatically
-
-To send html or api response *automatically*, you must call `return $this->sendResponse()` from `__invoke()` method as shown above.
-
-Under the hood, `sendResponse()` method checks if `Accept: application/json` header is present in request and if so it sends output from your `jsonResponse()` method otherwise from `htmlResponse()` method. 
 
 ## Creating Actions ##
 
