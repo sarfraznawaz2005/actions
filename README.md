@@ -167,7 +167,7 @@ Simply return `true` from `isApi` method and use `json` method.
 
 **Using Action Classes for Web/Browser Requests Only**
 
-This is default behaviour, you can simply return your HTML/blade views from within `__invokde` or if you use `html` method.
+This is default behaviour, you can simply return your HTML/blade views from within `__invoke` or `html` method if you use it.
 
 ## Validation ##
 
@@ -189,9 +189,9 @@ class TodoStoreAction extends Action
 }
 ````
 
-In this case, validation will be performed before `__invoke` method is called and if it fails, you will be automatically redirected back to form page with `$errors` filled with validation errors.
+In this case, validation will be performed before `__invoke` method is called and if it fails, you will be automatically redirected back to previous form page with `$errors` filled with validation errors.
 
-> **Tip:** Because validatoin is performed before `__invoke` method is called, using `request()->all()` will give you valid data in `__invoke` method which is why it's used in above example.
+> **Tip:** Because validation is performed before `__invoke` method is called, using `request()->all()` will always give you valid data in `__invoke` method which is why it's used in above example.
 
 **Custom Validation Messages**
 
@@ -241,6 +241,9 @@ There are few things to notice above that package provides out of the box:
  - If you return something from `__invoke` method, it gets stored into `$this->result` variable automatically. In this case, boolean result of todo creation was saved into it. We then used this variable as convenience in `html` and `json` methods to decide what response to send in case of success/failure.
  
  - Any validation errors are saved in `$this->errors` variable which can be used as needed.
+
+ - In `html()` method, we have used `self::MESSAGE_ADD` which comes from parent action class. Similar, `self::MESSAGE_UPDATE` and `self::MESSAGE_DELETE` can also be used.
+
 
 > **Tip:** You can choose to not use any utility methods/properties/validations offered by this package which is completely fine. Remember, action classes are normal Laravel controllers you can use however you like.
 
@@ -313,14 +316,6 @@ php artisan make:action EditPost --force
 
 > If `EditPost` action already exists, it will be overwritten by the new one
 
----
----
-
-**NOTE** We strongly recommend to append `Action` suffix to all your action classes:
-
-```bash
-php artisan make:action ShowPostAction
-```
 
 ## Registering Routes 
 
