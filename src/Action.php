@@ -113,7 +113,7 @@ abstract class Action extends BaseController
      */
     private function expectsApi(): bool
     {
-        return request()->expectsJson() && !request()->acceptsHtml();
+        return request()->wantsJson() && !request()->acceptsHtml();
     }
 
     /**

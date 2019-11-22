@@ -155,7 +155,7 @@ class TodosListAction extends Action
         
     public function isApi()
     {
-        return request()->expectsJson() && !request()->acceptsHtml();
+        return request()->wantsJson() && !request()->acceptsHtml();
     }
 
 }
