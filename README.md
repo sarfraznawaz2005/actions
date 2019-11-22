@@ -236,13 +236,27 @@ class TodoStoreAction extends Action
 
 There are few things to notice above that package provides out of the box:
 
- - Inside `__invoke` method, we used `$this->create` method as shorthand/quick way to create a new todo record. Similarly, `$this->update` and `$this->delete` methods can also be used. They all return `boolean` value. They all also accept optional callback which gets triggered only if their operation returned `true`. Using these methods is not required though.
+ - Inside `__invoke` method, we used `$this->create` method as shorthand/quick way to create a new todo record. Similarly, `$this->update` and `$this->delete` methods can also be used. They all return `boolean` value. They all also accept optional callback:
+
+````php
+return $this->create($todo, function ($result) {
+    if ($result) {
+        flash(self::MESSAGE_ADD, 'success');
+    } else {
+        flash(self::MESSAGE_FAIL, 'danger');
+    }
+});
+````
+
+
+Using these methods is not required though.
  
  - If you return something from `__invoke` method, it gets stored into `$this->result` variable automatically. In this case, boolean result of todo creation was saved into it. We then used this variable as convenience in `html` and `json` methods to decide what response to send in case of success/failure.
  
  - Any validation errors are saved in `$this->errors` variable which can be used as needed.
 
- - In `html()` method, we have used `self::MESSAGE_ADD` which comes from parent action class. Similar, `self::MESSAGE_UPDATE` and `self::MESSAGE_DELETE` can also be used.
+ - In `html()` method, we have used `self::MESSAGE_ADD` which comes from parent action class. Similar, `self::MESSAGE_UPDATE`, `self::MESSAGE_DELETE` and `self::MESSAGE_FAIL` can also be used.
+
 
 
 > **Tip:** You can choose to not use any utility methods/properties/validations offered by this package which is completely fine. Remember, action classes are normal Laravel controllers you can use however you like.

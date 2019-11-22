@@ -19,6 +19,7 @@ abstract class Action extends BaseController
     const MESSAGE_ADD = 'Added Successfully';
     const MESSAGE_UPDATE = 'Updated Successfully';
     const MESSAGE_DELETE = 'Deleted Successfully';
+    const MESSAGE_FAIL = 'Operation Failed';
 
     /**
      * validation rules for action
@@ -142,16 +143,7 @@ abstract class Action extends BaseController
      */
     protected function create(Model $model, Callable $callback = null): bool
     {
-        if ($this->save($model)) {
-
-            if (!is_null($callback) && is_callable($callback)) {
-                $callback();
-            }
-
-            return true;
-        }
-
-        return false;
+        return $this->save($model, $callback);
     }
 
     /**
@@ -163,16 +155,7 @@ abstract class Action extends BaseController
      */
     protected function update(Model $model, Callable $callback = null): bool
     {
-        if ($this->save($model)) {
-
-            if (!is_null($callback) && is_callable($callback)) {
-                $callback();
-            }
-
-            return true;
-        }
-
-        return false;
+        return $this->save($model, $callback);
     }
 
     /**
@@ -185,28 +168,32 @@ abstract class Action extends BaseController
      */
     protected function delete(Model $model, Callable $callback = null): bool
     {
-        if ($model->delete()) {
+        $result = $model->delete();
 
-            if (!is_null($callback) && is_callable($callback)) {
-                $callback();
-            }
-
-            return true;
+        if ($callback !== null && is_callable($callback)) {
+            $callback($result);
         }
 
-        return false;
+        return $result;
     }
 
     /**
      * Saves record for given model
      *
      * @param Model $model
+     * @param Callable $callback
      * @return bool
      */
-    private function save(Model $model): bool
+    private function save(Model $model, Callable $callback = null): bool
     {
         $model->fill(request()->all());
 
-        return $model->save();
+        $result = $model->save();
+
+        if ($callback !== null && is_callable($callback)) {
+            $callback($result);
+        }
+
+        return $result;
     }
 }
