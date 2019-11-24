@@ -95,12 +95,12 @@ abstract class Action extends BaseController
             }
 
             if ($this->isApi) {
-                return $this->json();
+                return $this->json($this->result);
             }
         }
 
         if (method_exists($this, 'html')) {
-            return $this->html();
+            return $this->html($this->result);
         }
 
         return $this->result;

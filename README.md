@@ -117,7 +117,7 @@ class TodosListAction extends Action
 
     protected function html()
     {
-        return view()->with('todos', $this->todos);
+        return view('index')->with('todos', $this->todos);
     }
 
     protected function json()
@@ -213,9 +213,9 @@ class TodoStoreAction extends Action
         return $this->create($todo);
     }
 
-    protected function html()
+    protected function html($result)
     {
-        if (!$this->result) {
+        if (!$result) {
             return back()->withInput()->withErrors($this->errors);
         }
 
@@ -223,9 +223,9 @@ class TodoStoreAction extends Action
         return back();
     }
 
-    protected function json()
+    protected function json($result)
     {
-        if (!$this->result) {
+        if (!$result) {
             return response()->json(['result' => false], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
@@ -251,7 +251,7 @@ return $this->create($todo, function ($result) {
 
 Using these methods is not required though.
  
- - If you return something from `__invoke` method, it gets stored into `$this->result` variable automatically. In this case, boolean result of todo creation was saved into it. We then used this variable as convenience in `html` and `json` methods to decide what response to send in case of success/failure.
+ - If you return something from `__invoke` method, it can be read later from `html` and `json` methods as first parameter. In this case, boolean result of todo creation (`return $this->create($todo)`) was used in both `html` and `json` methods via `$result` variable whos name can be anything.
  
  - Any validation errors are saved in `$this->errors` variable which can be used as needed.
 
