@@ -69,6 +69,10 @@ abstract class Action extends BaseController
             throw new BadMethodCallException('Only __invoke method can be called on action.');
         }
 
+        if (method_exists($this, 'transform')) {
+            $this->transformRequest($this->transform(request()));
+        }
+
         $this->validate();
 
         $this->result = call_user_func_array([$this, $method], $parameters);
@@ -114,6 +118,16 @@ abstract class Action extends BaseController
     private function expectsApi(): bool
     {
         return request()->wantsJson() && !request()->acceptsHtml();
+    }
+
+    /**
+     * Transforms requests data
+     *
+     * @return void
+     */
+    private function transformRequest(array $data)
+    {
+        request()->merge($data);
     }
 
     /**

@@ -249,7 +249,7 @@ return $this->create($todo, function ($result) {
 ````
 
 
-Using these methods is not required though.
+Using these utility methods is not required though.
  
  - If you return something from `__invoke` method, it can be read later from `html` and `json` methods as first parameter. In this case, boolean result of todo creation (`return $this->create($todo)`) was used in both `html` and `json` methods via `$result` variable whos name can be anything.
  
@@ -257,10 +257,25 @@ Using these methods is not required though.
 
  - In `html()` method, we have used `self::MESSAGE_ADD` which comes from parent action class. Similar, `self::MESSAGE_UPDATE`, `self::MESSAGE_DELETE` and `self::MESSAGE_FAIL` can also be used.
 
-
-
 > **Tip:** You can choose to not use any utility methods/properties/validations offered by this package which is completely fine. Remember, action classes are normal Laravel controllers you can use however you like.
 
+**Transforming Request Data**
+
+If you want to transform request data *before* validation is performed and *before* `__invoke()` method is called, you can define `transform` method in your action class which must return an array:
+
+`````php
+public function transform(Request $request): array
+{
+    return [
+        'description' => trim(strip_tags($request->description)),
+        'user_id' => auth()->user->id ?? 0,
+    ];
+}
+`````
+
+The transform method can be used to both *modify* existing request variables as well as *adding* new variables to request data. In above example, we modify `description` to trim any whitespace and remove any html tags. We also add `user_id` to request data which wasn't in it before.
+
+Behind the scene, we simply merge whatever is returned from this method into original Request data.
 
 ## Creating Actions ##
 
