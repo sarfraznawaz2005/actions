@@ -85,12 +85,13 @@ class MakeActionCommand extends BaseCommand
 
             if ($created) {
 
-				if ($createdPath) {
-					$this->line("\n");
-					$createdPath = str_replace(['\\', '/', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR], DIRECTORY_SEPARATOR, $createdPath);
-					$this->line('Path: ' . $createdPath);
-				}            
-            
+                if ($createdPath) {
+                    $this->line("\n");
+                    $createdPath = str_replace(['\\', '/', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR],
+                        DIRECTORY_SEPARATOR, $createdPath);
+                    $this->line('Path: ' . $createdPath);
+                }
+
                 $this->printRoutes($classNames);
             }
 
@@ -141,7 +142,7 @@ class MakeActionCommand extends BaseCommand
 
         // remove action name
         $methods = array_map(static function ($value) use ($actionName) {
-            return $value . '|' . strtolower(str_replace($actionName, '', $value));
+            return $value . '|' . str_replace(strtolower($actionName), '', strtolower($value));
         }, $classNames);
 
         foreach ($methods as $methodDetails) {
