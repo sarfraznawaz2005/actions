@@ -188,7 +188,7 @@ abstract class Action extends BaseController
             $callback($result);
         }
 
-        return $result;
+        return $result ?: false;
     }
 
     /**
@@ -208,6 +208,6 @@ abstract class Action extends BaseController
             $callback($result);
         }
 
-        return $result;
+        return $result ?: false;
     }
 }
