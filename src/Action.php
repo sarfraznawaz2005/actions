@@ -10,7 +10,6 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\MessageBag;
-use Symfony\Component\HttpFoundation\Response;
 
 abstract class Action extends BaseController
 {
@@ -61,7 +60,7 @@ abstract class Action extends BaseController
      *
      * @param string $method
      * @param array $parameters
-     * @return Response
+     * @return mixed
      */
     public function callAction($method, $parameters)
     {
@@ -123,6 +122,7 @@ abstract class Action extends BaseController
     /**
      * Transforms requests data
      *
+     * @param array $data
      * @return void
      */
     private function transformRequest(array $data)
@@ -146,6 +146,8 @@ abstract class Action extends BaseController
 
             return $validator->validate();
         }
+
+        return true;
     }
 
     /**
@@ -177,10 +179,10 @@ abstract class Action extends BaseController
      *
      * @param Model $model
      * @param Callable $callback
-     * @return bool
+     * @return mixed
      * @throws \Exception
      */
-    protected function delete(Model $model, Callable $callback = null): bool
+    protected function delete(Model $model, Callable $callback = null)
     {
         $result = $model->delete();
 
@@ -188,7 +190,7 @@ abstract class Action extends BaseController
             $callback($result);
         }
 
-        return $result ?: false;
+        return $result;
     }
 
     /**
@@ -196,9 +198,9 @@ abstract class Action extends BaseController
      *
      * @param Model $model
      * @param Callable $callback
-     * @return bool
+     * @return mixed
      */
-    private function save(Model $model, Callable $callback = null): bool
+    private function save(Model $model, Callable $callback = null)
     {
         $model->fill(request()->all());
 
@@ -208,6 +210,6 @@ abstract class Action extends BaseController
             $callback($result);
         }
 
-        return $result ?: false;
+        return $result;
     }
 }
