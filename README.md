@@ -219,7 +219,7 @@ class TodoStoreAction extends Action
             return back()->withInput()->withErrors($this->errors);
         }
 
-        session()->flash('success', self::MESSAGE_ADD);
+        session()->flash('success', self::MESSAGE_CREATE);
         return back();
     }
 
@@ -241,7 +241,7 @@ There are few things to notice above that package provides out of the box:
 ````php
 return $this->create($todo, function ($result) {
     if ($result) {
-        flash(self::MESSAGE_ADD, 'success');
+        flash(self::MESSAGE_CREATE, 'success');
     } else {
         flash(self::MESSAGE_FAIL, 'danger');
     }
@@ -255,7 +255,7 @@ Using these utility methods is not required though.
  
  - Any validation errors are saved in `$this->errors` variable which can be used as needed.
 
- - In `html()` method, we have used `self::MESSAGE_ADD` which comes from parent action class. Similar, `self::MESSAGE_UPDATE`, `self::MESSAGE_DELETE` and `self::MESSAGE_FAIL` can also be used.
+ - In `html()` method, we have used `self::MESSAGE_CREATE` which comes from parent action class. Similar, `self::MESSAGE_UPDATE`, `self::MESSAGE_DELETE` and `self::MESSAGE_FAIL` can also be used.
 
 > **Tip:** You can choose to not use any utility methods/properties/validations offered by this package which is completely fine. Remember, action classes are normal Laravel controllers you can use however you like.
 

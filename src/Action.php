@@ -15,7 +15,7 @@ abstract class Action extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    const MESSAGE_ADD = 'Added Successfully';
+    const MESSAGE_CREATE = 'Added Successfully';
     const MESSAGE_UPDATE = 'Updated Successfully';
     const MESSAGE_DELETE = 'Deleted Successfully';
     const MESSAGE_FAIL = 'Operation Failed';
