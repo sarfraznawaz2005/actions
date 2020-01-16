@@ -33,6 +33,7 @@ Under the hood, action classes are normal Laravel controllers but with single pu
  - Small dedicated classes really pay off in complex apps
  - Expressive routes registration like `Route::get('/', HomeAction::class)`
  - Allows decorator pattern 
+ 
 
 ## Requirements ##
 
