@@ -102,6 +102,12 @@ $action = new PublishPostAction();
 $action();
 ````
 
+**As Job**
+
+````php
+dispatch(new PublishPostAction());
+````
+
 ## Send Web or API Response Automatically ##
 
 If you need to serve both web and api responses from same/single action class, you need to define `html()` and `json()` method in your action class:

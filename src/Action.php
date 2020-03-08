@@ -3,10 +3,12 @@
 namespace Sarfraznawaz2005\Actions;
 
 use BadMethodCallException;
+use Illuminate\Bus\Queueable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\MessageBag;
@@ -14,6 +16,9 @@ use Illuminate\Support\MessageBag;
 abstract class Action extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+
+    use InteractsWithQueue;
+    use Queueable;
 
     const MESSAGE_CREATE = 'Added Successfully';
     const MESSAGE_UPDATE = 'Updated Successfully';
@@ -79,6 +84,19 @@ abstract class Action extends BaseController
         if (method_exists($this, 'html') || method_exists($this, 'json')) {
             return $this->sendResponse();
         }
+
+        return $this->result;
+    }
+
+    /**
+     * Called as job.
+     *
+     * @param array $parameters
+     * @return mixed
+     */
+    public function handle(array $parameters = [])
+    {
+        $this->result = call_user_func_array([$this, '__invoke'], $parameters);
 
         return $this->result;
     }
