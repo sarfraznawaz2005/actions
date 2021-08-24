@@ -5,7 +5,7 @@
     "action",
     "single",
     "controller",
-    "srp"
+    "class"
   ],
   "description": "Laravel package as alternative to single action controllers with support for web and api in single class.",
   "type": "library",

@@ -16,7 +16,6 @@ abstract class Action extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
     use InteractsWithQueue;
-    //use Queueable;
 
     // these can be used by the user-created actions
     const MESSAGE_CREATE = 'Added Successfully';
