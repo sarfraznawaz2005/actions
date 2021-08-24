@@ -3,7 +3,6 @@
 namespace Sarfraznawaz2005\Actions;
 
 use BadMethodCallException;
-use Illuminate\Bus\Queueable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -16,10 +15,10 @@ use Illuminate\Support\MessageBag;
 abstract class Action extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
-
     use InteractsWithQueue;
     //use Queueable;
 
+    // these can be used by the user-created actions
     const MESSAGE_CREATE = 'Added Successfully';
     const MESSAGE_UPDATE = 'Updated Successfully';
     const MESSAGE_DELETE = 'Deleted Successfully';
@@ -61,6 +60,13 @@ abstract class Action extends BaseController
     protected $result = false;
 
     /**
+     * requests items to ignore in validation or when creating/updating a model.
+     *
+     * @var array
+     */
+    protected $ignored = [];
+
+    /**
      * Execute the action.
      *
      * @param string $method
@@ -73,11 +79,35 @@ abstract class Action extends BaseController
             throw new BadMethodCallException('Only __invoke method can be called on action.');
         }
 
+        // see if we need to ignore/remove items specified via ignored property
+        if ($this->ignored) {
+            foreach ($this->ignored as $ignored) {
+                request()->request->remove($ignored);
+            }
+        }
+
         if (method_exists($this, 'transform')) {
             $this->transformRequest($this->transform(request()));
         }
 
-        $this->validate();
+        // validate request data
+        if (
+            request()->isMethod('POST') ||
+            request()->isMethod('PUT') ||
+            request()->isMethod('PATCH') ||
+            request()->isMethod('DELETE')
+        ) {
+
+            $validated = $this->validate();
+
+            if ($validated instanceof \Illuminate\Validation\Validator) {
+                if (request()->ajax() || request()->wantsJson()) {
+                    return $this->errors;
+                }
+
+                return redirect()->back()->withInput()->withErrors($validated);
+            }
+        }
 
         $this->result = call_user_func_array([$this, $method], $parameters);
 
@@ -160,9 +190,9 @@ abstract class Action extends BaseController
 
             if ($validator->fails()) {
                 $this->errors = $validator->errors();
+                return $validator;
             }
 
-            return $validator->validate();
         }
 
         return true;
@@ -175,7 +205,7 @@ abstract class Action extends BaseController
      * @param Callable $callback
      * @return bool
      */
-    protected function create(Model $model, Callable $callback = null): bool
+    protected function create(Model $model, callable $callback = null): bool
     {
         return $this->save($model, $callback);
     }
@@ -187,7 +217,7 @@ abstract class Action extends BaseController
      * @param Callable $callback
      * @return bool
      */
-    protected function update(Model $model, Callable $callback = null): bool
+    protected function update(Model $model, callable $callback = null): bool
     {
         return $this->save($model, $callback);
     }
@@ -200,7 +230,7 @@ abstract class Action extends BaseController
      * @return mixed
      * @throws \Exception
      */
-    protected function delete(Model $model, Callable $callback = null)
+    protected function delete(Model $model, callable $callback = null)
     {
         $result = $model->delete();
 
@@ -218,7 +248,7 @@ abstract class Action extends BaseController
      * @param Callable $callback
      * @return mixed
      */
-    private function save(Model $model, Callable $callback = null)
+    private function save(Model $model, callable $callback = null)
     {
         $model->fill(request()->all());
 

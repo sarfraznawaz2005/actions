@@ -198,6 +198,10 @@ In this case, validation will be performed before `__invoke` method is called an
 
 To implement custom validation error messages for your rules, simply use `protected $messages = []` property.
 
+**Ignoring/Filtering Request Data**
+
+If you want to remove some request data before it is validated/persisted, you can use the `protected $ignored = ['id'];`. In this case, `id` will be removed from the request eg in other words it will be as if it was not posted in the request.
+
 ## Utility Methods and Properties ##
 
 Consider following action which is supposed to save todo/task into database and send appropriate response to web and api:
