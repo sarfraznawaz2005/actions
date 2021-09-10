@@ -3,6 +3,7 @@
 namespace Sarfraznawaz2005\Actions;
 
 use BadMethodCallException;
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -11,6 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\MessageBag;
+use Illuminate\Validation\ValidationException;
 
 abstract class Action extends BaseController
 {
@@ -18,10 +20,10 @@ abstract class Action extends BaseController
     use InteractsWithQueue;
 
     // these can be used by the user-created actions
-    const MESSAGE_CREATE = 'Added Successfully';
-    const MESSAGE_UPDATE = 'Updated Successfully';
-    const MESSAGE_DELETE = 'Deleted Successfully';
-    const MESSAGE_FAIL = 'Operation Failed';
+    public const MESSAGE_CREATE = 'Added Successfully';
+    public const MESSAGE_UPDATE = 'Updated Successfully';
+    public const MESSAGE_DELETE = 'Deleted Successfully';
+    public const MESSAGE_FAIL = 'Operation Failed';
 
     /**
      * validation rules for action
@@ -35,7 +37,7 @@ abstract class Action extends BaseController
      *
      * @var MessageBag
      */
-    protected $errors = null;
+    protected $errors;
 
     /**
      * custom messages for validation errors
@@ -66,11 +68,19 @@ abstract class Action extends BaseController
     protected $ignored = [];
 
     /**
+     * The validated data
+     *
+     * @var array
+     */
+    protected $data = [];
+
+    /**
      * Execute the action.
      *
      * @param string $method
      * @param array $parameters
      * @return mixed
+     * @throws ValidationException
      */
     public function callAction($method, $parameters)
     {
@@ -90,22 +100,14 @@ abstract class Action extends BaseController
         }
 
         // validate request data
-        if (
-            request()->isMethod('POST') ||
-            request()->isMethod('PUT') ||
-            request()->isMethod('PATCH') ||
-            request()->isMethod('DELETE')
-        ) {
+        $validated = $this->validate();
 
-            $validated = $this->validate();
-
-            if ($validated instanceof \Illuminate\Validation\Validator) {
-                if (request()->ajax() || request()->wantsJson()) {
-                    return $this->errors;
-                }
-
-                return redirect()->back()->withInput()->withErrors($validated);
+        if ($validated instanceof \Illuminate\Validation\Validator) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return $this->errors;
             }
+
+            return redirect()->back()->withInput()->withErrors($validated);
         }
 
         $this->result = call_user_func_array([$this, $method], $parameters);
@@ -172,7 +174,7 @@ abstract class Action extends BaseController
      * @param array $data
      * @return void
      */
-    private function transformRequest(array $data)
+    private function transformRequest(array $data): void
     {
         request()->merge($data);
     }
@@ -180,7 +182,8 @@ abstract class Action extends BaseController
     /**
      * Checks validation rules against request input.
      *
-     * @return mixed
+     * @return bool|\Illuminate\Contracts\Validation\Validator|\Illuminate\Validation\Validator
+     * @throws ValidationException
      */
     private function validate()
     {
@@ -192,6 +195,7 @@ abstract class Action extends BaseController
                 return $validator;
             }
 
+            $this->data = $validator->validated();
         }
 
         return true;
@@ -201,7 +205,7 @@ abstract class Action extends BaseController
      * Creates new DB record for given model
      *
      * @param Model $model
-     * @param Callable $callback
+     * @param callable|null $callback
      * @return bool
      */
     protected function create(Model $model, callable $callback = null): bool
@@ -213,7 +217,7 @@ abstract class Action extends BaseController
      * Updates record for given model
      *
      * @param Model $model
-     * @param Callable $callback
+     * @param callable|null $callback
      * @return bool
      */
     protected function update(Model $model, callable $callback = null): bool
@@ -225,11 +229,11 @@ abstract class Action extends BaseController
      * Deletes record for given model
      *
      * @param Model $model
-     * @param Callable $callback
-     * @return mixed
-     * @throws \Exception
+     * @param callable|null $callback
+     * @return bool|null
+     * @throws Exception
      */
-    protected function delete(Model $model, callable $callback = null)
+    protected function delete(Model $model, callable $callback = null): ?bool
     {
         $result = $model->delete();
 
@@ -244,12 +248,12 @@ abstract class Action extends BaseController
      * Saves record for given model
      *
      * @param Model $model
-     * @param Callable $callback
-     * @return mixed
+     * @param callable|null $callback
+     * @return bool
      */
-    private function save(Model $model, callable $callback = null)
+    private function save(Model $model, callable $callback = null): bool
     {
-        $model->fill(request()->all());
+        $model->fill($this->data ?: request()->all());
 
         $result = $model->save();
 
