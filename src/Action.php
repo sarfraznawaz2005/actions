@@ -253,7 +253,7 @@ abstract class Action extends BaseController
      */
     private function save(Model $model, callable $callback = null): bool
     {
-        $model->fill($this->data ?: request()->all());
+        $model->fill(request()->all());
 
         $result = $model->save();
 
